@@ -181,7 +181,7 @@ jupyter notebook Student_Commute_EDA.ipynb
 ## 📝 Acknowledgements
 
 - All 724 students who filled our Google Form survey 🙏
-- Our EDA ma'am for teaching us these techniques in Sem 2
+- Special Thanks to our EDA ma'am (mrs. Snehal Bhosale) for teaching us these techniques in Sem 2
 - [Pandas Documentation](https://pandas.pydata.org/docs/)
 - [Matplotlib Documentation](https://matplotlib.org/)
 
