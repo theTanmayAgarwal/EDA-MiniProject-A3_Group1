@@ -42,11 +42,22 @@ From the mode of transport and travel time to bottlenecks and satisfaction score
 ## 📂 Repository Structure
 
 ```
-📦 student-commute-eda
+📦 EDA-MiniProject-A3_Group1 (student-commute-eda)
  ┣ 📓 Student_Commute_EDA.ipynb       ← Main EDA Notebook
  ┣ 📄 student_commute_data_google_form.csv  ← Dataset (Google Form responses)
  ┣ 📄 EDA_Questions_Student-Daily-Commute-Dataset.pdf  ← Questions on which we have performed the EDA
- ┗ 📄 README.md                        ← You are here!
+ ┣ 📄 LICENSE                         ← MIT License
+ ┗ 📄 README.md                       ← You are here!
+ │
+ └── 📁 visuals/                      ← Saved chart images
+     ├── primary_mode_bar.png
+     ├── time_of_day_pie.png
+     ├── travel_time_histogram.png
+     ├── cost_histogram.png
+     ├── delay_points_bar.png
+     ├── avg_time_by_mode.png
+     ├── avg_cost_by_mode.png
+     └── satisfaction_bar.png
 ```
 
 ---
