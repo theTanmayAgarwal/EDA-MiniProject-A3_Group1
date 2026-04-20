@@ -138,7 +138,7 @@ The dataset contains 724 records with the following features:
 
 ## 👥 Team Members
 
-- **Tanmay Agarwal** (PRN: 25070123158) - Lead Developer
+- **Tanmay Agarwal** (PRN: 25070123158) - Developer
 - **Tannishtha Gupta** (PRN: 25070123049) - Co-Developer
 
 ## 📄 License
