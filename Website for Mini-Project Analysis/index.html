@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Commute Analysis | EDA Project</title>
+    <meta name="description" content="Exploratory Data Analysis of student daily commute patterns in Pune">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- GSAP + ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=SF+Pro+Text:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['SF Pro Display', 'Inter', 'sans-serif'],
+                        'body': ['SF Pro Text', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark': {
+                            'bg': '#000000',
+                            'surface': '#0a0a0a',
+                            'elevated': '#141414',
+                            'border': '#1d1d1f',
+                            'text': '#f5f5f7',
+                            'secondary': '#86868b',
+                            'tertiary': '#6e6e73',
+                        },
+                        'accent': {
+                            'blue': '#0071e3',
+                            'purple': '#5e5ce6',
+                            'pink': '#ff375f',
+                            'orange': '#ff9f0a',
+                            'green': '#30d158',
+                            'teal': '#64d2ff',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-dark-bg text-dark-text font-body antialiased overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" class="flex items-center space-x-2">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <span class="font-display font-semibold text-lg tracking-tight">CommuteEDA</span>
+                </a>
+
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="#overview" class="nav-link">Overview</a>
+                    <a href="#data" class="nav-link">Data</a>
+                    <a href="#analysis" class="nav-link">Analysis</a>
+                    <a href="#insights" class="nav-link">Insights</a>
+                    <a href="#team" class="nav-link">Team</a>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-dark-elevated transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                    <button id="mobileMenuBtn"
+                        class="md:hidden p-2 rounded-full hover:bg-dark-elevated transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-dark-surface/95 backdrop-blur-xl border-t border-dark-border">
+            <div class="px-6 py-4 space-y-1">
+                <a href="#overview"
+                    class="block px-4 py-3 rounded-xl hover:bg-dark-elevated transition-colors">Overview</a>
+                <a href="#data" class="block px-4 py-3 rounded-xl hover:bg-dark-elevated transition-colors">Data</a>
+                <a href="#analysis"
+                    class="block px-4 py-3 rounded-xl hover:bg-dark-elevated transition-colors">Analysis</a>
+                <a href="#insights"
+                    class="block px-4 py-3 rounded-xl hover:bg-dark-elevated transition-colors">Insights</a>
+                <a href="#team" class="block px-4 py-3 rounded-xl hover:bg-dark-elevated transition-colors">Team</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <!-- Animated Gradient Mesh Background -->
+        <div class="absolute inset-0 bg-dark-bg">
+            <!-- Aurora Gradient Layers -->
+            <div class="aurora-container">
+                <div class="aurora aurora-1"></div>
+                <div class="aurora aurora-2"></div>
+                <div class="aurora aurora-3"></div>
+                <div class="aurora aurora-4"></div>
+            </div>
+
+            <!-- Floating Gradient Blobs -->
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="blob blob-3"></div>
+            <div class="blob blob-4"></div>
+
+            <!-- Grid Pattern Overlay -->
+            <div class="grid-pattern"></div>
+
+            <!-- Noise Texture -->
+            <div class="noise-overlay"></div>
+
+            <!-- Enhanced Particles -->
+            <div class="particles-container">
+                <div class="particle enhanced" style="left: 5%; animation-delay: 0s;"></div>
+                <div class="particle enhanced" style="left: 15%; animation-delay: 2s;"></div>
+                <div class="particle enhanced" style="left: 25%; animation-delay: 4s;"></div>
+                <div class="particle enhanced" style="left: 35%; animation-delay: 1s;"></div>
+                <div class="particle enhanced" style="left: 45%; animation-delay: 3s;"></div>
+                <div class="particle enhanced" style="left: 55%; animation-delay: 0.5s;"></div>
+                <div class="particle enhanced" style="left: 65%; animation-delay: 2.5s;"></div>
+                <div class="particle enhanced" style="left: 75%; animation-delay: 1.5s;"></div>
+                <div class="particle enhanced" style="left: 85%; animation-delay: 3.5s;"></div>
+                <div class="particle enhanced" style="left: 95%; animation-delay: 0.8s;"></div>
+            </div>
+
+            <!-- Decorative Rings -->
+            <div class="deco-ring ring-1"></div>
+            <div class="deco-ring ring-2"></div>
+            <div class="deco-ring ring-3"></div>
+        </div>
+
+        <div class="relative z-10 text-center px-6 max-w-6xl mx-auto">
+            <div class="hero-content">
+                <!-- Animated Badge -->
+                <div class="hero-badge opacity-0 mb-8">
+                    <span
+                        class="inline-flex items-center px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+                        <span class="w-2 h-2 rounded-full bg-accent-green animate-pulse mr-2"></span>
+                        <span class="text-sm font-medium text-dark-secondary">EnTC A3 Group 1 | B.Tech Sem 2</span>
+                    </span>
+                </div>
+
+                <!-- Main Title with Gradient Animation -->
+                <h1
+                    class="hero-title font-display font-semibold text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight leading-[0.95] mb-8">
+                    <span class="block overflow-hidden">
+                        <span class="hero-line inline-block text-white/90">Student Daily</span>
+                    </span>
+                    <span class="block overflow-hidden mt-2">
+                        <span class="hero-line inline-block">
+                            <span class="animated-gradient-text">Commute</span>
+                        </span>
+                    </span>
+                    <span class="block overflow-hidden mt-2">
+                        <span class="hero-line inline-block text-white/90">Analysis</span>
+                    </span>
+                </h1>
+
+                <!-- Animated Subtitle -->
+                <p
+                    class="hero-desc text-dark-secondary text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed opacity-0">
+                    Uncovering <span class="text-white/80">patterns</span>, <span class="text-white/80">insights</span>,
+                    and <span class="text-white/80">trends</span> in student commuting behavior across Pune city through
+                    comprehensive EDA.
+                </p>
+
+                <!-- Animated Stats Row -->
+                <div class="hero-stats opacity-0 mb-12">
+                    <div class="flex flex-wrap justify-center gap-8 md:gap-12">
+                        <div class="stat-item">
+                            <span class="stat-value font-display font-bold text-3xl md:text-4xl">724</span>
+                            <span class="stat-label text-dark-tertiary text-sm">Records</span>
+                        </div>
+                        <div class="stat-divider hidden md:block"></div>
+                        <div class="stat-item">
+                            <span class="stat-value font-display font-bold text-3xl md:text-4xl">16+</span>
+                            <span class="stat-label text-dark-tertiary text-sm">Visualizations</span>
+                        </div>
+                        <div class="stat-divider hidden md:block"></div>
+                        <div class="stat-item">
+                            <span class="stat-value font-display font-bold text-3xl md:text-4xl">6</span>
+                            <span class="stat-label text-dark-tertiary text-sm">Transport Modes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Buttons -->
+                <div class="hero-cta flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0">
+                    <a href="#analysis"
+                        class="group relative px-8 py-4 rounded-full font-medium text-sm tracking-wide overflow-hidden cta-primary">
+                        <span class="relative z-10 flex items-center text-dark-bg">
+                            Explore Analysis
+                            <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </span>
+                    </a>
+                    <a href="#data"
+                        class="group px-8 py-4 rounded-full font-medium text-sm tracking-wide border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-300">
+                        <span class="flex items-center">
+                            View Dataset
+                            <svg class="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100 transition-opacity" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator absolute bottom-10 left-1/2 -translate-x-1/2 opacity-0">
+            <div class="flex flex-col items-center space-y-3">
+                <div class="scroll-mouse">
+                    <div class="scroll-wheel"></div>
+                </div>
+                <span class="text-dark-tertiary text-xs tracking-widest uppercase">Scroll to explore</span>
+            </div>
+        </div>
+
+        <!-- Corner Decorations -->
+        <div class="corner-decoration top-left"></div>
+        <div class="corner-decoration top-right"></div>
+        <div class="corner-decoration bottom-left"></div>
+        <div class="corner-decoration bottom-right"></div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="py-32 relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="reveal-section opacity-0 translate-y-20">
+                <div class="text-center mb-20">
+                    <span
+                        class="inline-block px-4 py-1.5 rounded-full bg-accent-blue/10 text-accent-blue text-xs font-medium tracking-widest uppercase mb-6">Overview</span>
+                    <h2 class="font-display font-semibold text-4xl md:text-5xl tracking-tight mb-6">Understanding the
+                        Problem</h2>
+                    <p class="text-dark-secondary text-lg max-w-2xl mx-auto">Students in Pune face significant
+                        challenges in daily commuting. This analysis quantifies these challenges and identifies
+                        actionable patterns.</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="glass-card p-8 rounded-3xl">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-blue/20 to-accent-purple/20 flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-accent-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-xl mb-3">Problem Statement</h3>
+                        <p class="text-dark-secondary text-sm leading-relaxed">Students face long travel times, high
+                            costs, and unreliable transport. We aim to quantify these challenges and identify
+                            improvement opportunities.</p>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-3xl">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-purple/20 to-accent-pink/20 flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-accent-purple" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-xl mb-3">Key Objectives</h3>
+                        <ul class="text-dark-secondary text-sm space-y-2">
+                            <li class="flex items-start"><span class="text-accent-purple mr-2">•</span>Analyze transport
+                                mode preferences</li>
+                            <li class="flex items-start"><span class="text-accent-purple mr-2">•</span>Identify peak
+                                commute patterns</li>
+                            <li class="flex items-start"><span class="text-accent-purple mr-2">•</span>Quantify cost vs.
+                                time trade-offs</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-3xl">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-green/20 to-accent-teal/20 flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-accent-green" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-xl mb-3">Real-World Impact</h3>
+                        <p class="text-dark-secondary text-sm leading-relaxed">Actionable insights for city planners,
+                            institutions, and transport authorities to improve student commute infrastructure.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Section -->
+    <section id="data" class="py-32 relative bg-dark-surface">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="reveal-section opacity-0 translate-y-20">
+                <div class="text-center mb-20">
+                    <span
+                        class="inline-block px-4 py-1.5 rounded-full bg-accent-purple/10 text-accent-purple text-xs font-medium tracking-widest uppercase mb-6">Dataset</span>
+                    <h2 class="font-display font-semibold text-4xl md:text-5xl tracking-tight mb-6">724 Student Records
+                    </h2>
+                    <p class="text-dark-secondary text-lg max-w-2xl mx-auto">Collected via Google Forms from students
+                        across various locations in Pune, capturing real-world commute experiences.</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+                    <div class="stat-card text-center p-6 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div class="stat-number font-display font-bold text-4xl md:text-5xl text-gradient mb-2"
+                            data-count="724">0</div>
+                        <div class="text-dark-secondary text-sm">Total Records</div>
+                    </div>
+                    <div class="stat-card text-center p-6 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div class="stat-number font-display font-bold text-4xl md:text-5xl text-gradient mb-2"
+                            data-count="10">0</div>
+                        <div class="text-dark-secondary text-sm">Features</div>
+                    </div>
+                    <div class="stat-card text-center p-6 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div class="stat-number font-display font-bold text-4xl md:text-5xl text-gradient mb-2"
+                            data-count="7">0</div>
+                        <div class="text-dark-secondary text-sm">Starting Points</div>
+                    </div>
+                    <div class="stat-card text-center p-6 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div class="stat-number font-display font-bold text-4xl md:text-5xl text-gradient mb-2"
+                            data-count="6">0</div>
+                        <div class="text-dark-secondary text-sm">Transport Modes</div>
+                    </div>
+                </div>
+
+                <!-- Feature Cards -->
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-16">
+                    <div class="feature-card p-5 rounded-xl bg-dark-elevated/50 border border-dark-border/50">
+                        <h4 class="font-medium text-sm mb-1">Starting Point</h4>
+                        <p class="text-dark-secondary text-xs">Kothrud, Wakad, Baner, Pashan, Shivajinagar, SIT Lavale
+                            Campus, Other</p>
+                    </div>
+                    <div class="feature-card p-5 rounded-xl bg-dark-elevated/50 border border-dark-border/50">
+                        <h4 class="font-medium text-sm mb-1">Destination</h4>
+                        <p class="text-dark-secondary text-xs">Hinjewadi, Kharadi, Viman Nagar, Swargate, Pune Station,
+                            Other</p>
+                    </div>
+                    <div class="feature-card p-5 rounded-xl bg-dark-elevated/50 border border-dark-border/50">
+                        <h4 class="font-medium text-sm mb-1">Primary Transport</h4>
+                        <p class="text-dark-secondary text-xs">Metro, PMPML Bus, Cab, Two-Wheeler, Auto, Carpool</p>
+                    </div>
+                    <div class="feature-card p-5 rounded-xl bg-dark-elevated/50 border border-dark-border/50">
+                        <h4 class="font-medium text-sm mb-1">Time of Day</h4>
+                        <p class="text-dark-secondary text-xs">Morning Peak, Midday, Evening Peak, Night</p>
+                    </div>
+                    <div class="feature-card p-5 rounded-xl bg-dark-elevated/50 border border-dark-border/50">
+                        <h4 class="font-medium text-sm mb-1">Travel Time & Cost</h4>
+                        <p class="text-dark-secondary text-xs">20-119 minutes | ₹10-₹445 one-way</p>
+                    </div>
+                    <div class="feature-card p-5 rounded-xl bg-dark-elevated/50 border border-dark-border/50">
+                        <h4 class="font-medium text-sm mb-1">Delay Points</h4>
+                        <p class="text-dark-secondary text-xs">Hinjewadi Traffic, Chandni Chowk, University Circle,
+                            Yerawada Junction, Bus/Metro Wait</p>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-dark-border">
+                        <h3 class="font-display font-semibold">Sample Data Preview</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-dark-elevated">
+                                <tr>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-dark-secondary uppercase tracking-wider">
+                                        Starting Point</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-dark-secondary uppercase tracking-wider">
+                                        Destination</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-dark-secondary uppercase tracking-wider">
+                                        Primary Mode</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-dark-secondary uppercase tracking-wider">
+                                        Time of Day</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-dark-secondary uppercase tracking-wider">
+                                        Travel Time</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-dark-secondary uppercase tracking-wider">
+                                        Cost</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-dark-secondary uppercase tracking-wider">
+                                        Satisfaction</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="divide-y divide-dark-border"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analysis Section -->
+    <section id="analysis" class="py-32 relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="reveal-section opacity-0 translate-y-20">
+                <div class="text-center mb-20">
+                    <span
+                        class="inline-block px-4 py-1.5 rounded-full bg-accent-green/10 text-accent-green text-xs font-medium tracking-widest uppercase mb-6">Analysis</span>
+                    <h2 class="font-display font-semibold text-4xl md:text-5xl tracking-tight mb-6">Visualizations</h2>
+                    <p class="text-dark-secondary text-lg max-w-2xl mx-auto">Interactive charts revealing patterns in
+                        student commute data.</p>
+                </div>
+
+                <!-- Chart Filters -->
+                <div class="flex flex-wrap justify-center gap-2 mb-12">
+                    <button class="chart-filter active" data-filter="all">All Charts</button>
+                    <button class="chart-filter" data-filter="basic">Basic</button>
+                    <button class="chart-filter" data-filter="advanced">Advanced</button>
+                </div>
+
+                <!-- Basic Charts -->
+                <div id="basic-charts" class="space-y-20">
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Transport Mode Preferences</h3>
+                            <p class="text-dark-secondary text-sm">Distribution of students by their primary transport
+                                choice</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="primaryModeChart" class="p-6" style="height: 380px;"></div>
+                            </div>
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="timeOfDayChart" class="p-6" style="height: 380px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Time & Cost Distribution</h3>
+                            <p class="text-dark-secondary text-sm">How commute duration and expenses vary across
+                                students</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="travelTimeHistogram" class="p-6" style="height: 380px;"></div>
+                            </div>
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="costHistogram" class="p-6" style="height: 380px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Delay Points & Satisfaction</h3>
+                            <p class="text-dark-secondary text-sm">Major bottlenecks and overall commute satisfaction
+                            </p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="delayPointsChart" class="p-6" style="height: 380px;"></div>
+                            </div>
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="satisfactionChart" class="p-6" style="height: 380px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Average Metrics by Mode</h3>
+                            <p class="text-dark-secondary text-sm">Comparing travel time and cost across transport types
+                            </p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="avgTimeByModeChart" class="p-6" style="height: 380px;"></div>
+                            </div>
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="avgCostByModeChart" class="p-6" style="height: 380px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Charts -->
+                <div id="advanced-charts" class="space-y-20 mt-20">
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Correlation Analysis</h3>
+                            <p class="text-dark-secondary text-sm">Relationship between Travel Time, Cost, and
+                                Satisfaction</p>
+                        </div>
+                        <div class="chart-card rounded-2xl overflow-hidden max-w-4xl mx-auto">
+                            <div id="correlationHeatmap" class="p-6" style="height: 450px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Mode Usage Patterns</h3>
+                            <p class="text-dark-secondary text-sm">How transport choices vary across time slots</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="crosstabHeatmap" class="p-6" style="height: 420px;"></div>
+                            </div>
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="stackedBarChart" class="p-6" style="height: 420px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Distribution Analysis</h3>
+                            <p class="text-dark-secondary text-sm">Understanding variance and outliers in commute data
+                            </p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="boxPlotChart" class="p-6" style="height: 420px;"></div>
+                            </div>
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="violinChart" class="p-6" style="height: 420px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Geographic Distribution</h3>
+                            <p class="text-dark-secondary text-sm">Student distribution and transport preferences by
+                                area</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="treemapChart" class="p-6" style="height: 420px;"></div>
+                            </div>
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="sunburstChart" class="p-6" style="height: 420px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-section opacity-0">
+                        <div class="text-center mb-12">
+                            <h3 class="font-display font-semibold text-2xl mb-2">Multi-Dimensional Analysis</h3>
+                            <p class="text-dark-secondary text-sm">Exploring relationships between time, cost, and
+                                satisfaction</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="scatter3DChart" class="p-6" style="height: 480px;"></div>
+                            </div>
+                            <div class="chart-card rounded-2xl overflow-hidden">
+                                <div id="bubbleChart" class="p-6" style="height: 420px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Insights Section -->
+    <section id="insights" class="py-32 relative bg-dark-surface">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="reveal-section opacity-0 translate-y-20">
+                <div class="text-center mb-20">
+                    <span
+                        class="inline-block px-4 py-1.5 rounded-full bg-accent-orange/10 text-accent-orange text-xs font-medium tracking-widest uppercase mb-6">Key
+                        Insights</span>
+                    <h2 class="font-display font-semibold text-4xl md:text-5xl tracking-tight mb-6">What the Data
+                        Reveals</h2>
+                    <p class="text-dark-secondary text-lg max-w-2xl mx-auto">Critical findings and actionable insights
+                        from our analysis.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+                    <div class="insight-card p-8 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-blue/20 to-accent-purple/20 flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-accent-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-lg mb-3">Metro is the Winner</h3>
+                        <p class="text-dark-secondary text-sm mb-4">Lowest average cost (₹24) and fastest travel times
+                            (~41 min), making it the best value for money.</p>
+                        <div class="flex items-center text-accent-blue text-sm font-medium">
+                            <span>21% of students</span>
+                            <span class="mx-2 text-dark-border">•</span>
+                            <span>prefer Metro</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-card p-8 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-pink/20 to-accent-orange/20 flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-accent-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-lg mb-3">Hinjewadi Traffic Crisis</h3>
+                        <p class="text-dark-secondary text-sm mb-4">Most reported bottleneck (17% of delays), followed
+                            by University Circle and Bus/Metro wait times.</p>
+                        <div class="flex items-center text-accent-pink text-sm font-medium">
+                            <span>83 delays</span>
+                            <span class="mx-2 text-dark-border">•</span>
+                            <span>reported at Hinjewadi</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-card p-8 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-green/20 to-accent-teal/20 flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-accent-green" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-lg mb-3">Cost-Time Trade-off</h3>
+                        <p class="text-dark-secondary text-sm mb-4">Cabs cost 10x more than Metro but save only ~5
+                            minutes average - poor cost efficiency.</p>
+                        <div class="flex items-center text-accent-green text-sm font-medium">
+                            <span>10x cost</span>
+                            <span class="mx-2 text-dark-border">•</span>
+                            <span>minimal time savings</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-card p-8 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-purple/20 to-accent-blue/20 flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-accent-purple" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-lg mb-3">Morning Peak Dominance</h3>
+                        <p class="text-dark-secondary text-sm mb-4">35% of commutes happen during morning peak (8-11
+                            AM), the key optimization target.</p>
+                        <div class="flex items-center text-accent-purple text-sm font-medium">
+                            <span>254 trips</span>
+                            <span class="mx-2 text-dark-border">•</span>
+                            <span>during morning rush</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-card p-8 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-orange/20 to-accent-pink/20 flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-accent-orange" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-lg mb-3">Satisfaction Paradox</h3>
+                        <p class="text-dark-secondary text-sm mb-4">No strong correlation with cost or time - subjective
+                            factors like comfort matter significantly.</p>
+                        <div class="flex items-center text-accent-orange text-sm font-medium">
+                            <span>Average: 2.95/5</span>
+                            <span class="mx-2 text-dark-border">•</span>
+                            <span>moderate satisfaction</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-card p-8 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-teal/20 to-accent-green/20 flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-accent-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-display font-semibold text-lg mb-3">Kothrud: The Hub</h3>
+                        <p class="text-dark-secondary text-sm mb-4">Highest commuter representation (15.7%), indicating
+                            significant outbound student population.</p>
+                        <div class="flex items-center text-accent-teal text-sm font-medium">
+                            <span>114 students</span>
+                            <span class="mx-2 text-dark-border">•</span>
+                            <span>from Kothrud area</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conclusion -->
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="conclusion-card p-8 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <h3 class="font-display font-semibold text-xl mb-6 flex items-center">
+                            <span
+                                class="w-8 h-8 rounded-lg bg-accent-green/20 flex items-center justify-center mr-3 text-accent-green">✓</span>
+                            Key Patterns
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start text-dark-secondary text-sm">
+                                <span class="text-accent-green mr-3 mt-0.5">•</span>
+                                Metro dominates as preferred transport due to cost-effectiveness and reliability
+                            </li>
+                            <li class="flex items-start text-dark-secondary text-sm">
+                                <span class="text-accent-green mr-3 mt-0.5">•</span>
+                                Morning peak hours see the highest commute volume across all modes
+                            </li>
+                            <li class="flex items-start text-dark-secondary text-sm">
+                                <span class="text-accent-green mr-3 mt-0.5">•</span>
+                                Traffic bottlenecks significantly impact PMPML Bus users
+                            </li>
+                            <li class="flex items-start text-dark-secondary text-sm">
+                                <span class="text-accent-green mr-3 mt-0.5">•</span>
+                                Cost-time efficiency favors public transport over personal vehicles
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="conclusion-card p-8 rounded-2xl bg-dark-elevated border border-dark-border">
+                        <h3 class="font-display font-semibold text-xl mb-6 flex items-center">
+                            <span
+                                class="w-8 h-8 rounded-lg bg-accent-blue/20 flex items-center justify-center mr-3 text-accent-blue">→</span>
+                            Recommendations
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start text-dark-secondary text-sm">
+                                <span class="text-accent-blue mr-3 mt-0.5">•</span>
+                                Expand Metro coverage to underserved areas like Hinjewadi and Kharadi
+                            </li>
+                            <li class="flex items-start text-dark-secondary text-sm">
+                                <span class="text-accent-blue mr-3 mt-0.5">•</span>
+                                Implement traffic management at identified bottleneck locations
+                            </li>
+                            <li class="flex items-start text-dark-secondary text-sm">
+                                <span class="text-accent-blue mr-3 mt-0.5">•</span>
+                                Introduce dedicated bus lanes during peak hours
+                            </li>
+                            <li class="flex items-start text-dark-secondary text-sm">
+                                <span class="text-accent-blue mr-3 mt-0.5">•</span>
+                                Consider student discount programs for public transport
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="py-32 relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="reveal-section opacity-0 translate-y-20">
+                <div class="text-center mb-20">
+                    <span
+                        class="inline-block px-4 py-1.5 rounded-full bg-accent-purple/10 text-accent-purple text-xs font-medium tracking-widest uppercase mb-6">Team</span>
+                    <h2 class="font-display font-semibold text-4xl md:text-5xl tracking-tight mb-6">Meet the Team</h2>
+                    <p class="text-dark-secondary text-lg">EnTC A3 Group 1 | B.Tech Semester 2</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+                    <div class="team-card p-8 rounded-2xl bg-dark-elevated border border-dark-border text-center">
+                        <div
+                            class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center text-4xl font-bold text-white mb-6">
+                            TA
+                        </div>
+                        <div
+                            class="inline-block px-3 py-1 rounded-full bg-accent-blue/10 text-accent-blue text-xs font-medium mb-4">
+                            Developer
+                        </div>
+                        <h3 class="font-display font-semibold text-xl mb-1">Tanmay Agarwal</h3>
+                        <p class="text-dark-secondary text-sm mb-4">PRN: 25070123158</p>
+                        <p class="text-dark-tertiary text-xs mb-4">Data Analysis, Visualization & Web Development</p>
+                        <div class="flex justify-center gap-4 text-xs text-dark-secondary">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1 text-accent-green" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                EDA Analysis
+                            </span>
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1 text-accent-green" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                Documentation
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="team-card p-8 rounded-2xl bg-dark-elevated border border-dark-border text-center">
+                        <div
+                            class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-accent-pink to-accent-orange flex items-center justify-center text-4xl font-bold text-white mb-6">
+                            TG
+                        </div>
+                        <div
+                            class="inline-block px-3 py-1 rounded-full bg-accent-pink/10 text-accent-pink text-xs font-medium mb-4">
+                            Co-Developer
+                        </div>
+                        <h3 class="font-display font-semibold text-xl mb-1">Tannishtha Gupta</h3>
+                        <p class="text-dark-secondary text-sm mb-4">PRN: 25070123049</p>
+                        <p class="text-dark-tertiary text-xs mb-4">Research, Data Collection & Presentation</p>
+                        <div class="flex justify-center gap-4 text-xs text-dark-secondary">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1 text-accent-green" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                Data Collection
+                            </span>
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1 text-accent-green" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                Presentation
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-12">
+                    <p class="text-dark-tertiary text-sm">Under the guidance of EDA Faculty: Mrs. Snehal Bhosale Ma'am
+                    </p>
+                    <p class="text-dark-secondary mt-1">Symbiosis Institute of Technology, Pune</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-dark-border">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center space-x-2">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <span class="font-display font-medium">CommuteEDA</span>
+                </div>
+                <p class="text-dark-tertiary text-sm">© 2026 Student Daily Commute Analysis. EnTC A3 Group 1.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <button id="backToTop"
+        class="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-dark-text text-dark-bg flex items-center justify-center opacity-0 invisible transition-all duration-300 hover:scale-110 z-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <script src="js/data.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
